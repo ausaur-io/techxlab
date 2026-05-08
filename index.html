@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TechX.Lab">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/1f6feb/ffffff?text=TechX">
+  
+  <title>TechX.Lab 27.4 WebApp</title>
+  <style>
+    :root{ --bg:#0a0c10; --card:#161b22; --text:#f0f6fc; --primary:#238636; --accent:#1f6feb; --radius:24px; --warning:#e3b341; --danger:#f85149; }
+    body{ background:var(--bg); color:var(--text); font-family:-apple-system, sans-serif; padding:16px; margin:0; line-height:1.6; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:0 15px 40px rgba(0,0,0,0.4); max-width:500px; margin:20px auto; border:1px solid #30363d; position:relative; min-height: 880px; padding-bottom: 120px; }
+    .nav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .admin-zone { width: 40px; height: 40px; }
+    .lang-btn { background: var(--accent); border:none; color:white; padding:6px 12px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; }
+    .back-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; font-size: 14px; cursor: pointer; padding: 8px 14px; border-radius: 12px; visibility: hidden; }
+    .page { display: none; }
+    .page-active { display: block; }
+    .status-pill { padding:6px 14px; background:rgba(31, 111, 235, 0.1); color:var(--accent); border-radius:999px; font-size:11px; font-weight:bold; }
+    .progress-container { height: 4px; background: #30363d; border-radius: 2px; margin-bottom: 25px; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--accent); width: 10%; transition: width 0.4s; }
+    h2{ margin:0 0 10px 0; color:#ffffff; font-size:20px; font-weight:800; }
+    .btn-grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    button{ padding:16px; border-radius:14px; border:none; font-weight:800; cursor:pointer; font-size:15px; text-align: left; }
+    .btn-main{ background:var(--accent); color:white; width:100%; text-align: center; margin-top: 10px; }
+    .btn-danger{ background:var(--danger); color:white; width:100%; text-align: center; margin-top: 15px; }
+    .btn-opt { background:#21262d; color:#c9d1d9; border:1px solid #30363d; }
+    .btn-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color:white; width:100%; text-align: center; margin-top: 10px; }
+    .warning-box { background: rgba(248, 81, 73, 0.1); border-left: 4px solid var(--danger); padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 13px; color: #ff7b72; line-height: 1.5; }
+    .price-value { color: var(--warning); font-size: 26px; font-weight: 900; }
+    .chat-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #30363d; background: #0d1117; color: white; margin-top: 10px; box-sizing: border-box; }
+    .float-container { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; align-items: center; z-index: 999; }
+    .techx-float { width: 60px; height: 60px; background: #000; border-radius: 50%; box-shadow: 0 0 20px var(--accent); cursor: pointer; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="nav-header">
+      <button id="global-back-btn" class="back-btn" onclick="goBack()">‹ Back</button>
+      <div class="admin-zone" id="admin-trigger"></div>
+      <button class="lang-btn" onclick="toggleLang()">EN / 中文</button>
+      <div id="step-pill" class="status-pill">PHASE 1</div>
+    </div>
+    <div class="progress-container"><div id="p-bar" class="progress-bar"></div></div>
+
+    <div id="page-1" class="page page-active">
+      <h2 data-zh="請選擇手機平台" data-en="Select Mobile Platform">請選擇手機平台</h2>
+      <div class="btn-grid">
+        <button class="btn-opt" onclick="toPage('1a', {os:'iOS'})"> Apple iPhone</button>
+        <button class="btn-opt" onclick="toPage('1a', {os:'Android'})">🤖 Android System</button>
+      </div>
+    </div>
+
+    <div id="page-1a" class="page"><h2 data-zh="選擇型號系列" data-en="Select Series">選擇型號系列</h2><div id="model-options" class="btn-grid"></div></div>
+
+    <div id="page-2" class="page"><h2 data-zh="發生咩故障？" data-en="Select Issue Type">發生咩故障？</h2><div id="type-options" class="btn-grid"></div></div>
+
+    <div id="page-3" class="page">
+      <h2 data-zh="目前物理狀態" data-en="Physical State">目前物理狀態</h2>
+      <div class="btn-grid">
+        <button class="btn-opt" onclick="toPage(4, {detail:'heat'})" data-zh="🔥 機身明顯發熱" data-en="🔥 Overheating">🔥 機身明顯發熱</button>
+        <button class="btn-opt" onclick="toPage(4, {detail:'none'})" data-zh="✅ 溫度正常" data-en="✅ Normal Temp">✅ 溫度正常</button>
+      </div>
+    </div>
+
+    <div id="page-4" class="page"><h2 data-zh="了解詳細受損情境" data-en="Detail Severity">了解詳細受損情境</h2><div id="sev-options" class="btn-grid"></div></div>
+
+    <div id="page-4-5" class="page">
+        <h2 data-zh="📸 影張相幫忙診斷" data-en="📸 Take a Photo">📸 影張相幫忙診斷</h2>
+        <p style="font-size:14px; color:#8b949e;" data-zh="影低受損位置，AI 會更精準分析（可選）：" data-en="Photo helps AI analyze better (Optional):">影低受損位置，AI 會更精準分析（可選）：</p>
+        <label for="photo-upload" style="display: block; background: #21262d; border: 2px dashed var(--accent); padding: 30px; border-radius: 16px; text-align: center; cursor: pointer; margin: 20px 0;">
+            <span style="font-size: 40px;">📷</span><br>
+            <span data-zh="撳我影相 / 上傳" data-en="Tap to Snap / Upload">撳我影相 / 上傳</span>
+            <input type="file" id="photo-upload" accept="image/*" capture="camera" style="display: none;" onchange="previewImage(this)">
+        </label>
+        <div id="image-preview-container" style="display: none; margin-bottom: 20px; text-align: center;">
+            <img id="image-preview" src="#" style="max-width: 100%; border-radius: 12px; border: 2px solid var(--accent);">
+            <button onclick="clearImage()" style="background: var(--danger); color: white; padding: 6px 15px; border-radius: 8px; font-size: 12px; margin-top: 10px; border: none;">Remove X</button>
+        </div>
+        <button class="btn-main" onclick="goToDiy()" data-zh="下一步" data-en="Next Step">下一步</button>
+    </div>
+
+    <div id="page-5" class="page">
+      <h2 data-zh="💡 DIY 緊急處理指導" data-en="💡 DIY Emergency Guide">💡 DIY 緊急處理指導</h2>
+      <div id="diy-content" style="background: rgba(31, 111, 236, 0.05); padding: 18px; border-radius: 16px; font-size: 14px;"></div>
+      <div id="diy-warning-zone"></div>
+      <button class="btn-main" onclick="toPage(6)" data-zh="方案無效？查看分析結果" data-en="View Final Diagnosis">方案無效？查看分析結果</button>
+    </div>
+
+    <div id="page-6" class="page">
+      <h2 data-zh="TechX.Lab 專家診斷" data-en="Expert Diagnosis">TechX.Lab 專家診斷</h2>
+      <div style="background:#0d1117; padding:20px; border-radius:18px; border:1px solid #30363d;">
+        <p id="rep-concl" style="font-weight:800; font-size:18px; margin:0; color:white;"></p>
+        <p id="rep-desc" style="font-size:13px; color:#c9d1d9; margin-top:8px; line-height:1.5;"></p>
+        <div class="price-tag-container">
+          <span id="rep-price" class="price-value"></span>
+        </div>
+      </div>
+      <button class="btn-main" style="margin-top:20px;" onclick="toPage(7)" data-zh="💬 聯絡專家諮詢" data-en="💬 Contact Expert">💬 聯絡專家諮詢</button>
+      <button class="btn-danger" onclick="window.location.href='https://www.google.com/maps/search/phone+repair+near+me'" data-zh="📍 搜尋附近維修店" data-en="📍 Search Repair Nearby">📍 搜尋附近維修店</button>
+      <button class="btn-ig" onclick="window.location.href='https://instagram.com/techx.lab'" data-zh="📸 瀏覽 Instagram @techx.lab" data-en="📸 Visit IG @techx.lab">📸 瀏覽 Instagram @techx.lab</button>
+    </div>
+
+    <div id="page-7" class="page">
+      <h2 data-zh="📥 預約專家諮詢" data-en="📥 Book Consult">預約專家諮詢</h2>
+      <input type="tel" id="cust-whatsapp" class="chat-input" placeholder="WhatsApp Number">
+      <textarea id="cust-msg" class="chat-input" rows="4" placeholder="Message..."></textarea>
+      <button class="btn-main" onclick="submitData()" data-zh="發送諮詢資料" data-en="Submit">發送諮詢資料</button>
+    </div>
+
+    <div id="page-admin" class="page"><h2>📊 Admin Log</h2><div id="admin-list"></div><button class="btn-opt" style="width:100%" onclick="toPage('1')">Back</button></div>
+  </div>
+
+  <div class="float-container" onclick="toPage(7)">
+    <div class="techx-float"><svg width="30" height="30" viewBox="0 0 24 24" fill="#1f6feb"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+  </div>
+
+<script>
+  let state = { os:'', model:'', type:'', detail:'', price:'', sev:'', lang:'zh', isFold: false, diyRedirect: false };
+  let pageHistory = [];
+  let currentBase64Image = "";
+
+  const db = {
+    water: { zh:"💧 入水/濕水", en:"💧 Liquid Damage", sevs: [
+      { lz: "💦 跌落淡水", le: "💦 Fresh Water", p: "$800 - $1500", diy: true, sz: ["立即強制關機。","放入密封盒配合香蕉皮吸濕 6 小時。"], se: ["Power off immediately.","Use banana peel in box for 6h."], cz: "淡水滲透短路", ce: "Fresh water short", dz: "主板受潮可能氧化，需及早清洗。", de: "Moisture may cause oxidation." },
+      { lz: "🧂 跌落鹹水/海水", le: "🧂 Salt Water", p: "$1800 起", diy: false, cz: "鹹水極速腐蝕", ce: "Salt water corrosion", dz: "海水具極強導電性，會瞬間蝕斷線路。", de: "Sea water corrodes circuits instantly." }
+    ]},
+    screen: { zh:"📱 螢幕損壞", en:"📱 Screen Damage", sevs: [
+      { lz: "💥 純玻璃爆裂 (顯示正常)", le: "💥 Glass Cracked", p: "$800 - $1500", diy: true, sz: ["貼上透明膠紙防止割手。"], se: ["Apply tape for protection."], cz: "螢幕玻璃破損", ce: "Glass damage", dz: "專業維修可只換玻璃「加工」，慳返一大截。", de: "Pro glass processing is much cheaper." },
+      { lz: "🌈 顯示異常/黑屏", le: "🌈 Display Issues", p: "$1200 - $3000", diy: false, cz: "螢幕總成故障", ce: "Assembly failure", dz: "需更換整套屏幕。", de: "Full assembly replacement required." }
+    ]},
+    battery: { zh:"🪫 電池問題", en:"🪫 Battery Issues", sevs: [
+      { lz: "🔋 電池膨脹", le: "🔋 Swollen Battery", p: "$450 - $950", diy: true, sz: ["切勿充電。","鬆底螺絲物理減壓。"], se: ["Stop charging.","Loosen screws for relief."], cz: "電池化學損壞", ce: "Battery failure", dz: "有起火風險，必須更換。", de: "Fire risk, replacement mandatory." },
+      { lz: "⏳ 續航力差", le: "⏳ Poor Battery Life", p: "$350 - $800", diy: false, cz: "電池壽命耗盡", ce: "Battery aged", dz: "建議更換新電池。", de: "Replacement recommended." }
+    ]},
+    wifi: { zh:"📶 Wi-Fi 異常", en:"📶 Wi-Fi Issues", sevs: [
+      { lz: "⚪️ 按鈕變灰/打唔開", le: "⚪️ Greyed out Toggle", p: "$800 - $2000", diy: false, cz: "Wi-Fi IC 虛焊", ce: "Wi-Fi IC fault", dz: "常見於跌落後主板損壞。", de: "Motherboard fault after drops." }
+    ]},
+    biometric: { zh:"👤 FaceID/指紋", en:"👤 Biometrics", sevs: [
+      { lz: "❌ 完全失效", le: "❌ Total Failure", p: "$1000 起", diy: false, cz: "硬件 IC 壞死", ce: "Hardware IC failure", dz: "生物識別晶片故障。", de: "Biometric chip failure." }
+    ]},
+    power: { zh:"🔌 唔識開機", en:"🔌 No Power", sevs: [
+      { lz: "完全黑屏無反應", le: "Dead / No Response", p: "$1000 - $2500", diy: true, sz: ["嘗試強制重啟。"], se: ["Try force restart."], cz: "主板供電短路", ce: "Power short", dz: "電路故障。", de: "Circuitry failure." }
+    ]},
+    charging: { zh:"⚡️ 充電故障", en:"⚡️ Charging Issues", sevs: [
+      { lz: "🔌 接觸不良", le: "🔌 Loose Connection", p: "$400 - $800", diy: true, sz: ["清理尾插積塵。"], se: ["Clean port debris."], cz: "尾插組件老化", ce: "Port wear", dz: "充電口磨損。", de: "Charging port worn out." }
+    ]},
+    audio: { zh:"🔊 聽筒/喇叭", en:"🔊 Audio/Speaker", sevs: [
+      { lz: "📢 喇叭完全無聲", le: "📢 No Sound", p: "$500 - $1200", diy: false, cz: "音頻 IC 損壞", ce: "Audio IC damage", dz: "處理晶片故障。", de: "Processing chip failure." }
+    ]},
+    fold: { zh:"🔄 摺機專用", en:"🔄 Foldable Specific", sevs: [
+      { lz: "打開大屏即熄機", le: "Power off when unfolded", p: "$2000 - $3500", diy: false, cz: "摺疊轉軸排線老化", ce: "Hinge cable wear", dz: "摺疊位斷裂。", de: "Fracture at folding point." }
+    ]}
+  };
+
+  function toggleLang() {
+    state.lang = state.lang === 'zh' ? 'en' : 'zh';
+    document.querySelectorAll('[data-zh]').forEach(el => { el.innerHTML = el.getAttribute('data-' + state.lang); });
+    const currentId = getCurrentId();
+    if(['1a', '2', '4', '5', '6'].includes(currentId)) toPage(currentId, null, true);
+  }
+
+  function toPage(id, data, silent = false) {
+    if (!silent) pageHistory.push({ id: getCurrentId(), state: JSON.parse(JSON.stringify(state)) });
+    if (data) Object.assign(state, data);
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
+    document.getElementById('page-' + id).classList.add('page-active');
+    updateProgress(id);
+    if (id === '1a') renderModels();
+    if (id === 2) renderTypes();
+    if (id === 4) renderPhase4();
+    if (id === 5) renderPhase5();
+    if (id === 6) renderPhase6();
+    if (id === 'admin') renderAdmin();
+  }
+
+  function renderModels() {
+    const container = document.getElementById('model-options'); container.innerHTML = '';
+    const list = state.os === 'iOS' ? 
+      ["iPhone 15/16/17 系列", "iPhone 13/14 系列", "iPhone 11/12 系列", "iPhone 8/X 系列"] : 
+      ["Samsung Fold/Flip 系列", "Samsung S/Note 系列", "其他 Android 品牌"];
+    list.forEach(m => {
+      const b = document.createElement('button'); b.className = 'btn-opt'; b.innerText = m;
+      b.onclick = () => toPage(2, { model: m, isFold: m.includes("Fold") || m.includes("Flip") }); 
+      container.appendChild(b);
+    });
+  }
+
+  function renderTypes() {
+    const container = document.getElementById('type-options'); container.innerHTML = '';
+    let keys = ['water', 'screen', 'battery', 'wifi', 'biometric', 'power', 'charging', 'audio'];
+    if (state.isFold) keys.push('fold');
+    keys.forEach(k => {
+      const b = document.createElement('button'); b.className = 'btn-opt'; b.innerText = db[k][state.lang];
+      b.onclick = () => toPage(3, { type: k }); container.appendChild(b);
+    });
+  }
+
+  function renderPhase4() {
+    const container = document.getElementById('sev-options'); container.innerHTML = '';
+    db[state.type].sevs.forEach(s => {
+      const b = document.createElement('button'); b.className = 'btn-opt'; b.innerText = state.lang === 'zh' ? s.lz : s.le;
+      b.onclick = () => toPage('4-5', { sev: s.lz, price: s.p, diySteps: state.lang === 'zh' ? s.sz : s.se, resConcl: state.lang === 'zh' ? s.cz : s.ce, resDesc: state.lang === 'zh' ? s.dz : s.de, diyRedirect: s.diy });
+      container.appendChild(b);
+    });
+  }
+
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('image-preview').src = e.target.result;
+        document.getElementById('image-preview-container').style.display = 'block';
+        currentBase64Image = "Attached";
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function clearImage() {
+    document.getElementById('photo-upload').value = "";
+    document.getElementById('image-preview-container').style.display = 'none';
+    currentBase64Image = "";
+  }
+
+  function goToDiy() { toPage(state.diyRedirect ? 5 : 6); }
+
+  function renderPhase5() {
+    let steps = state.lang === 'zh' ? ["🛡️ 預先備份資料"] : ["🛡️ Backup Data"];
+    if (state.diySteps) steps = [...steps, ...state.diySteps];
+    document.getElementById('diy-content').innerHTML = `<ul style="padding-left:20px;">${steps.map(s => `<li style="margin-bottom:8px;">${s}</li>`).join('')}</ul>`;
+    const warn = document.getElementById('diy-warning-zone');
+    if (state.type === 'screen') {
+        warn.innerHTML = `<div class="warning-box">${state.lang === 'zh' ? '⚠️ 專業加工比換總成更實惠。' : '⚠️ Pro glass processing is more affordable.'}</div>`;
+    } else warn.innerHTML = '';
+  }
+
+  function renderPhase6() {
+    document.getElementById('rep-concl').innerText = state.resConcl;
+    document.getElementById('rep-desc').innerText = state.resDesc || '';
+    document.getElementById('rep-price').innerText = state.price;
+  }
+
+  function updateProgress(id) {
+    const steps = { '1': 10, '1a': 25, '2': 40, '3': 50, '4': 65, '4-5': 75, '5': 85, '6': 95, '7': 100 };
+    document.getElementById('p-bar').style.width = (steps[id] || 100) + "%";
+    document.getElementById('global-back-btn').style.visibility = id === '1' ? 'hidden' : 'visible';
+    document.getElementById('step-pill').innerText = "PHASE " + (id === '1a' ? '1' : (id === '4-5' ? '4' : id));
+  }
+
+  function goBack() { if (pageHistory.length > 1) { pageHistory.pop(); const prev = pageHistory.pop(); toPage(prev.id, prev.state, true); } }
+  function getCurrentId() { return document.querySelector('.page-active').id.replace('page-', ''); }
+
+  function submitData() { 
+    const wa = document.getElementById('cust-whatsapp').value;
+    if(!wa) return alert('Please enter WhatsApp');
+    let logs = JSON.parse(localStorage.getItem('techx_logs') || '[]');
+    logs.unshift({ t: new Date().toLocaleString(), m: state.model, w: wa, img: currentBase64Image || "None" });
+    localStorage.setItem('techx_logs', JSON.stringify(logs));
+    alert('Submitted!'); toPage('1'); 
+  }
+
+  function renderAdmin() { 
+    const logs = JSON.parse(localStorage.getItem('techx_logs') || '[]');
+    document.getElementById('admin-list').innerHTML = logs.map(l => `<div style="font-size:12px; border-bottom:1px solid #333; margin-bottom:5px; color:#c9d1d9;">${l.t}<br>${l.m} | ${l.w} | Photo: ${l.img}</div>`).join('') || 'No Logs';
+  }
+
+  let adminTimer;
+  document.getElementById('admin-trigger').addEventListener('touchstart', () => { adminTimer = setTimeout(() => toPage('admin'), 3000); });
+  document.getElementById('admin-trigger').addEventListener('touchend', () => { clearTimeout(adminTimer); });
+</script>
+</body>
+</html>
